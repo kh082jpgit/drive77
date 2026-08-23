@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>運転日誌｜Pixel 9a</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Noto Sans JP", sans-serif;
+    background: #f5f3ef;
+    color: #2b2742;
+  }
+  .top {
+    background: #f5f3ef;
+    padding: 44px 28px 26px;
+    border-bottom: 4px solid #2b2742;
+  }
+  .en {
+    color: #c7654b;
+    font-weight: 700;
+    letter-spacing: 5px;
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+  h1 { margin: 0; font-size: 42px; letter-spacing: 2px; }
+  .sub { margin-top: 12px; color: #8d8a99; font-size: 19px; font-weight: 600; }
+  .container { max-width: 680px; margin: 0 auto; padding: 24px 26px 50px; }
+  .notice { color:#85818d; margin-bottom:20px; font-size:15px; }
+  .stats {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:28px;
+  }
+  .stat {
+    border:2px solid #302b47; background:#fff; padding:18px 8px; text-align:center;
+  }
+  .stat .num { color:#c7654b; font-size:30px; font-weight:700; }
+  .stat .label { color:#918d98; margin-top:5px; }
+  .card {
+    background:#fff; border:2px solid #302b47; padding:28px 34px;
+    margin-bottom:26px; box-shadow:5px 6px 0 rgba(199,101,75,.10);
+  }
+  .title { font-size:23px; font-weight:700; margin-bottom:22px; }
+  .title::before { content:"●"; color:#c7654b; font-size:16px; margin-right:12px; }
+  .field { margin-bottom:20px; }
+  label { display:block; color:#8c8895; font-weight:700; margin-bottom:8px; font-size:15px; }
+  input, textarea {
+    width:100%; border:0; border-bottom:3px solid #302b47; background:transparent;
+    padding:7px 3px 10px; font-size:20px; color:#55515d; outline:none;
+  }
+  input:focus, textarea:focus { border-bottom-color:#c7654b; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+  .buttons { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:12px; }
+  button {
+    border:2px solid #2b2742; background:#2b2742; color:#fff; padding:16px 10px;
+    font-size:18px; font-weight:700; border-radius:3px; cursor:pointer;
+  }
+  button.secondary { background:#fff; color:#222; }
+  button.save { background:#c7654b; border-color:#c7654b; }
+  button.danger { background:#fff; color:#b94e3a; border-color:#b94e3a; }
+  .status {
+    display:none; margin-top:14px; padding:11px 14px; background:#f7eee9;
+    color:#7d4a3b; border-left:5px solid #c7654b; font-size:14px;
+  }
+  .history-item {
+    display:grid; grid-template-columns:90px 1fr auto; gap:14px; align-items:start;
+    border-top:1px solid #ddd; padding:18px 0;
+  }
+  .date { font-size:18px; font-weight:700; color:#302b47; }
+  .details { line-height:1.7; color:#77727f; }
+  .details strong { color:#302b47; font-size:18px; }
+  .km { color:#c7654b; font-weight:700; white-space:nowrap; }
+  .delete { border:0; background:transparent; color:#8e8994; font-size:25px; padding:0; }
+  .small-actions { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:15px; }
+  .small-actions button { font-size:14px; padding:12px 5px; }
+  @media(max-width:520px) {
+    .top { padding:38px 28px 24px; }
+    h1 { font-size:37px; }
+    .container { padding:20px 26px 45px; }
+    .card { padding:25px 32px; }
+    .stats { gap:10px; }
+    .stat .num { font-size:25px; }
+    .row2, .buttons { grid-template-columns:1fr; gap:12px; }
+    .history-item { grid-template-columns:70px 1fr auto; gap:8px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="en">DRIVING LOG</div>
+  <h1>運転日誌</h1>
+  <div class="sub">Pixel 9a対応・運転記録</div>
+</header>
+
+<main class="container">
+  <div class="notice">Pixel 9a / Chrome対応版・この端末のブラウザに自動保存</div>
+
+  <section class="stats">
+    <div class="stat"><div class="num" id="count">0</div><div class="label">件</div></div>
+    <div class="stat"><div class="num" id="totalKm">0.0</div><div class="label">総走行 km</div></div>
+    <div class="stat"><div class="num" id="totalFuel">0.0</div><div class="label">総給油 L</div></div>
+  </section>
+
+  <section class="card">
+    <div class="title">新規記録</div>
+
+    <div class="field">
+      <label>日付</label>
+      <input id="date" type="date">
+    </div>
+
+    <div class="field">
+      <label>使用車</label>
+      <input id="vehicle" placeholder="社用車1">
+    </div>
+
+    <div class="field">
+      <label>運転者</label>
+      <input id="driver" placeholder="山田 太郎">
+    </div>
+
+    <div class="field">
+      <label>用務名</label>
+      <input id="purpose" placeholder="道路パトロール">
+    </div>
+
+    <div class="field">
+      <label>行先</label>
+      <input id="destination" placeholder="〇〇市〇〇町">
+    </div>
+
+    <div class="field">
+      <label>同乗者</label>
+      <input id="passenger" placeholder="山田 太郎、佐藤 花子">
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>出発時間</label>
+        <input id="start" type="time">
+      </div>
+      <div class="field">
+        <label>終了時間</label>
+        <input id="end" type="time">
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>走行距離（km）</label>
+        <input id="distance" type="number" step="0.1" placeholder="12345.0">
+      </div>
+      <div class="field">
+        <label>給油（L）</label>
+        <input id="fuel" type="number" step="0.1" placeholder="10.0">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>飲酒検知結果</label>
+      <input id="alcohol" type="text" inputmode="decimal" placeholder="0.00 mg/L">
+    </div>
+
+    <div class="field">
+      <label>体温検知結果</label>
+      <input id="temperature" type="text" inputmode="decimal" placeholder="36.5 ℃">
+    </div>
+
+    <!-- 一時保存ボタン -->
+    <div class="buttons">
+      <button class="save" onclick="saveDraft()">一時保存する</button>
+      <button class="secondary" onclick="loadDraft()">一時保存を呼び出す</button>
+    </div>
+
+    <div class="buttons">
+      <button onclick="addRecord()">記録する</button>
+      <button class="danger" onclick="clearForm()">入力をクリア</button>
+    </div>
+
+    <div id="status" class="status"></div>
+  </section>
+
+  <section class="card">
+    <div class="title">履歴</div>
+    <div id="history"></div>
+    <div class="small-actions">
+      <button class="secondary" onclick="exportCSV()">CSVを保存</button>
+      <button onclick="emailCSV()">メールで送信</button>
+      <button class="danger" onclick="deleteAll()">履歴を全削除</button>
+    </div>
+  </section>
+</main>
+
+<script>
+const DRAFT_KEY = "drivelog_draft_v1";
+const RECORD_KEY = "drivelog_records_v1";
+
+const ids = [
+  "date","vehicle","driver","purpose","destination","passenger",
+  "start","end","distance","fuel","alcohol","temperature"
+];
+
+function today() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+
+function getFormData() {
+  const o = {};
+  ids.forEach(id => o[id] = document.getElementById(id).value);
+  return o;
+}
+
+function setFormData(o) {
+  ids.forEach(id => {
+    if (o && o[id] !== undefined) document.getElementById(id).value = o[id];
+  });
+}
+
+function message(text) {
+  const el = document.getElementById("status");
+  el.textContent = text;
+  el.style.display = "block";
+  setTimeout(() => el.style.display = "none", 3000);
+}
+
+function saveDraft() {
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(getFormData()));
+  message("入力内容を一時保存しました。");
+}
+
+function loadDraft() {
+  const raw = localStorage.getItem(DRAFT_KEY);
+  if (!raw) {
+    message("一時保存された入力内容はありません。");
+    return;
+  }
+  setFormData(JSON.parse(raw));
+  message("一時保存した入力内容を呼び出しました。");
+}
+
+function clearForm() {
+  if (!confirm("現在の入力内容をクリアしますか？")) return;
+  setFormData({
+    date: today(), vehicle:"", driver:"", purpose:"",
+    destination:"", passenger:"", start:"", end:"",
+    distance:"", fuel:"", alcohol:"", temperature:""
+  });
+}
+
+function getRecords() {
+  return JSON.parse(localStorage.getItem(RECORD_KEY) || "[]");
+}
+
+function addRecord() {
+  const data = getFormData();
+
+  if (!data.date || !data.driver) {
+    alert("「日付」と「運転者」は入力してください。");
+    return;
+  }
+
+  const records = getRecords();
+  records.push({
+    id: Date.now(),
+    ...data
+  });
+  localStorage.setItem(RECORD_KEY, JSON.stringify(records));
+
+  // 記録後も入力内容は残し、一時保存データだけ消す
+  localStorage.removeItem(DRAFT_KEY);
+
+  render();
+  message("運転記録を保存しました。");
+}
+
+function deleteRecord(id) {
+  if (!confirm("この記録を削除しますか？")) return;
+  const records = getRecords().filter(r => r.id !== id);
+  localStorage.setItem(RECORD_KEY, JSON.stringify(records));
+  render();
+}
+
+function deleteAll() {
+  if (!confirm("履歴をすべて削除しますか？")) return;
+  localStorage.removeItem(RECORD_KEY);
+  render();
+}
+
+function render() {
+  const records = getRecords();
+  document.getElementById("count").textContent = records.length;
+
+  const km = records.reduce((s,r) => s + (parseFloat(r.distance)||0), 0);
+  const fuel = records.reduce((s,r) => s + (parseFloat(r.fuel)||0), 0);
+  document.getElementById("totalKm").textContent = km.toFixed(1);
+  document.getElementById("totalFuel").textContent = fuel.toFixed(1);
+
+  const box = document.getElementById("history");
+  if (!records.length) {
+    box.innerHTML = '<div style="color:#999;padding:10px 0;">まだ記録はありません。</div>';
+    return;
+  }
+
+  box.innerHTML = records.slice().reverse().map(r => {
+    const date = r.date ? r.date.slice(5).replace("-", "/") : "";
+    return `
+      <div class="history-item">
+        <div class="date">${date}</div>
+        <div class="details">
+          <strong>${esc(r.destination || "行先未入力")}</strong><br>
+          ${esc(r.vehicle)} ・ ${esc(r.driver)}<br>
+          用務：${esc(r.purpose)}<br>
+          同乗者：${esc(r.passenger || "なし")}<br>
+          出発 ${esc(r.start || "")} ～ 終了 ${esc(r.end || "")}<br>
+          飲酒 ${esc(r.alcohol || "")} ・ 体温 ${esc(r.temperature || "")}
+        </div>
+        <div>
+          <div class="km">${esc(r.distance || "0")}km</div>
+          <button class="delete" onclick="deleteRecord(${r.id})">×</button>
+        </div>
+      </div>`;
+  }).join("");
+}
+
+function esc(v) {
+  return String(v ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+
+function csvEscape(v) {
+  return '"' + String(v ?? "").replace(/"/g, '""') + '"';
+}
+
+function exportCSV() {
+  const records = getRecords();
+  if (!records.length) {
+    alert("CSVにする記録がありません。");
+    return;
+  }
+
+  const header = [
+    "日付","使用車","運転者","用務名","行先","同乗者",
+    "出発時間","終了時間","走行距離","給油",
+    "飲酒検知結果","体温検知結果"
+  ];
+
+  const lines = [
+    header.map(csvEscape).join(","),
+    ...records.map(r => [
+      r.date,r.vehicle,r.driver,r.purpose,r.destination,r.passenger,
+      r.start,r.end,r.distance,r.fuel,r.alcohol,r.temperature
+    ].map(csvEscape).join(","))
+  ];
+
+  const blob = new Blob(["\uFEFF" + lines.join("\r\n")], {type:"text/csv;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "運転日誌_" + today() + ".csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function emailCSV() {
+  const records = getRecords();
+  if (!records.length) {
+    alert("送信する記録がありません。");
+    return;
+  }
+  const subject = encodeURIComponent("運転日誌 " + today());
+  const body = encodeURIComponent(
+    "運転日誌のCSVデータを添付して送信してください。\n\n" +
+    "※このボタンはメールアプリを起動します。CSVファイルの添付は端末側で行ってください。"
+  );
+  location.href = `mailto:?subject=${subject}&body=${body}`;
+}
+
+document.getElementById("date").value = today();
+render();
+</script>
+</body>
+</html>
