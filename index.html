@@ -2,1318 +2,387 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>運転日誌</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>運転日誌｜Pixel 9a</title>
 <style>
-  :root{
-    --ink:#2b2440;
-    --paper:#faf8f5;
-    --line-navy:#3d3a6b;
-    --accent:#c65d3b;
-    --accent-soft:#f0e2da;
-    --grid:#dcd6cc;
-    --muted:#8a8398;
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Noto Sans JP", sans-serif;
+    background: #f5f3ef;
+    color: #2b2742;
   }
-
-  *{box-sizing:border-box;}
-
-  html,body{
-    margin:0;
-    padding:0;
+  .top {
+    background: #f5f3ef;
+    padding: 44px 28px 26px;
+    border-bottom: 4px solid #2b2742;
   }
-
-  body{
-    background:var(--paper);
-    background-image:
-      linear-gradient(var(--grid) 1px, transparent 1px);
-    background-size:100% 42px;
-    color:var(--ink);
-    font-family:"Hiragino Sans","Yu Gothic","Helvetica Neue",Arial,sans-serif;
-    min-height:100vh;
-    padding-bottom:40px;
+  .en {
+    color: #c7654b;
+    font-weight: 700;
+    letter-spacing: 5px;
+    font-size: 16px;
+    margin-bottom: 12px;
   }
-
-  header{
-    padding:28px 20px 18px;
-    border-bottom:3px solid var(--ink);
-    background:var(--paper);
-    position:sticky;
-    top:0;
-    z-index:10;
+  h1 { margin: 0; font-size: 42px; letter-spacing: 2px; }
+  .sub { margin-top: 12px; color: #8d8a99; font-size: 19px; font-weight: 600; }
+  .container { max-width: 680px; margin: 0 auto; padding: 24px 26px 50px; }
+  .notice { color:#85818d; margin-bottom:20px; font-size:15px; }
+  .stats {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:28px;
   }
-
-  header .eyebrow{
-    font-size:11px;
-    letter-spacing:.28em;
-    color:var(--accent);
-    font-weight:700;
-    margin-bottom:6px;
+  .stat {
+    border:2px solid #302b47; background:#fff; padding:18px 8px; text-align:center;
   }
-
-  h1{
-    margin:0;
-    font-size:26px;
-    font-weight:800;
-    letter-spacing:.02em;
+  .stat .num { color:#c7654b; font-size:30px; font-weight:700; }
+  .stat .label { color:#918d98; margin-top:5px; }
+  .card {
+    background:#fff; border:2px solid #302b47; padding:28px 34px;
+    margin-bottom:26px; box-shadow:5px 6px 0 rgba(199,101,75,.10);
   }
-
-  h1 .sub{
-    display:block;
-    font-size:13px;
-    font-weight:500;
-    color:var(--muted);
-    margin-top:4px;
-    letter-spacing:.05em;
+  .title { font-size:23px; font-weight:700; margin-bottom:22px; }
+  .title::before { content:"●"; color:#c7654b; font-size:16px; margin-right:12px; }
+  .field { margin-bottom:20px; }
+  label { display:block; color:#8c8895; font-weight:700; margin-bottom:8px; font-size:15px; }
+  input, textarea {
+    width:100%; border:0; border-bottom:3px solid #302b47; background:transparent;
+    padding:7px 3px 10px; font-size:20px; color:#55515d; outline:none;
   }
-
-  main{
-    max-width:520px;
-    margin:0 auto;
-    padding:20px 16px 0;
+  input:focus, textarea:focus { border-bottom-color:#c7654b; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+  .buttons { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:12px; }
+  button {
+    border:2px solid #2b2742; background:#2b2742; color:#fff; padding:16px 10px;
+    font-size:18px; font-weight:700; border-radius:3px; cursor:pointer;
   }
-
-  .card{
-    background:#fff;
-    border:1.5px solid var(--ink);
-    border-radius:2px;
-    padding:20px;
-    margin-bottom:22px;
-    box-shadow:4px 4px 0 var(--accent-soft);
+  button.secondary { background:#fff; color:#222; }
+  button.save { background:#c7654b; border-color:#c7654b; }
+  button.danger { background:#fff; color:#b94e3a; border-color:#b94e3a; }
+  .status {
+    display:none; margin-top:14px; padding:11px 14px; background:#f7eee9;
+    color:#7d4a3b; border-left:5px solid #c7654b; font-size:14px;
   }
-
-  .card h2{
-    margin:0 0 16px;
-    font-size:15px;
-    font-weight:800;
-    text-transform:uppercase;
-    letter-spacing:.12em;
-    display:flex;
-    align-items:center;
-    gap:8px;
+  .history-item {
+    display:grid; grid-template-columns:90px 1fr auto; gap:14px; align-items:start;
+    border-top:1px solid #ddd; padding:18px 0;
   }
-
-  .card h2::before{
-    content:"";
-    width:8px;
-    height:8px;
-    background:var(--accent);
-    border-radius:50%;
-    display:inline-block;
-  }
-
-  .row{
-    display:flex;
-    gap:12px;
-  }
-
-  .row > *{
-    flex:1;
-  }
-
-  label{
-    display:block;
-    font-size:11px;
-    font-weight:700;
-    color:var(--muted);
-    letter-spacing:.08em;
-    margin-bottom:5px;
-    margin-top:14px;
-  }
-
-  label:first-of-type{
-    margin-top:0;
-  }
-
-  input[type=text],
-  input[type=date],
-  input[type=number]{
-    width:100%;
-    border:none;
-    border-bottom:2px solid var(--ink);
-    background:transparent;
-    font-size:16px;
-    padding:8px 2px;
-    font-family:inherit;
-    color:var(--ink);
-  }
-
-  input:focus{
-    outline:none;
-    border-bottom-color:var(--accent);
-  }
-
-  .save-btn{
-    width:100%;
-    margin-top:22px;
-    padding:14px;
-    background:var(--ink);
-    color:#fff;
-    border:none;
-    font-size:15px;
-    font-weight:700;
-    letter-spacing:.06em;
-    cursor:pointer;
-    border-radius:2px;
-  }
-
-  .save-btn:active{
-    background:var(--accent);
-  }
-
-  .stats{
-    display:flex;
-    gap:10px;
-    margin-bottom:22px;
-  }
-
-  .stat{
-    flex:1;
-    border:1.5px solid var(--ink);
-    background:#fff;
-    padding:12px 10px;
-    text-align:center;
-  }
-
-  .stat .num{
-    font-size:20px;
-    font-weight:800;
-    color:var(--accent);
-    display:block;
-  }
-
-  .stat .lbl{
-    font-size:10px;
-    color:var(--muted);
-    letter-spacing:.06em;
-    margin-top:2px;
-    display:block;
-  }
-
-  .entry{
-    border-bottom:1px dashed var(--grid);
-    padding:14px 4px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:10px;
-  }
-
-  .entry:last-child{
-    border-bottom:none;
-  }
-
-  .entry .date{
-    font-weight:800;
-    font-size:14px;
-    width:78px;
-    flex-shrink:0;
-    color:var(--line-navy);
-  }
-
-  .entry .info{
-    flex:1;
-    font-size:13px;
-    color:var(--ink);
-    line-height:1.5;
-  }
-
-  .entry .info .dest{
-    font-weight:700;
-  }
-
-  .entry .info .meta{
-    color:var(--muted);
-  }
-
-  .entry .km{
-    font-size:13px;
-    font-weight:700;
-    color:var(--accent);
-    white-space:nowrap;
-  }
-
-  .entry .del{
-    background:none;
-    border:none;
-    color:var(--muted);
-    font-size:18px;
-    cursor:pointer;
-    padding:4px 6px;
-    line-height:1;
-  }
-
-  .empty{
-    text-align:center;
-    color:var(--muted);
-    font-size:13px;
-    padding:30px 10px;
-  }
-
-  .export-btn{
-    width:100%;
-    padding:12px;
-    background:#fff;
-    border:1.5px solid var(--ink);
-    font-weight:700;
-    font-size:14px;
-    letter-spacing:.04em;
-    cursor:pointer;
-    border-radius:2px;
-    margin-top:14px;
-  }
-
-  .btn-row{
-    display:flex;
-    gap:10px;
-    margin-top:14px;
-  }
-
-  .btn-row .export-btn{
-    margin-top:0;
-    flex:1;
-  }
-
-  .mail-btn{
-    background:var(--ink);
-    color:#fff;
-    border-color:var(--ink);
-  }
-
-  .toast{
-    position:fixed;
-    bottom:20px;
-    left:50%;
-    transform:translateX(-50%) translateY(20px);
-    background:var(--ink);
-    color:#fff;
-    padding:10px 18px;
-    border-radius:3px;
-    font-size:13px;
-    opacity:0;
-    transition:opacity .25s, transform .25s;
-    pointer-events:none;
-    z-index:50;
-  }
-
-  .toast.show{
-    opacity:1;
-    transform:translateX(-50%) translateY(0);
-  }
-
-  .overlay{
-    position:fixed;
-    inset:0;
-    background:rgba(43,36,64,.45);
-    display:none;
-    align-items:flex-end;
-    justify-content:center;
-    z-index:60;
-  }
-
-  .overlay.show{
-    display:flex;
-  }
-
-  .sheet{
-    background:var(--paper);
-    width:100%;
-    max-width:520px;
-    border-top:2px solid var(--ink);
-    padding:20px 18px 28px;
-    border-radius:14px 14px 0 0;
-  }
-
-  .sheet h3{
-    margin:0 0 4px;
-    font-size:16px;
-    font-weight:800;
-  }
-
-  .sheet .note{
-    font-size:12px;
-    color:var(--muted);
-    margin:0 0 16px;
-    line-height:1.5;
-  }
-
-  .mail-option{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    width:100%;
-    text-align:left;
-    padding:13px 12px;
-    background:#fff;
-    border:1.5px solid var(--ink);
-    border-radius:8px;
-    margin-bottom:10px;
-    font-size:14px;
-    font-weight:700;
-    cursor:pointer;
-    color:var(--ink);
-  }
-
-  .mail-option .dot{
-    width:10px;
-    height:10px;
-    border-radius:50%;
-    flex-shrink:0;
-  }
-
-  .dot-share{background:var(--accent);}
-  .dot-gmail{background:#c5493c;}
-  .dot-yahoo{background:#6001d2;}
-  .dot-default{background:var(--line-navy);}
-
-  .sheet-cancel{
-    width:100%;
-    padding:12px;
-    background:none;
-    border:none;
-    color:var(--muted);
-    font-size:14px;
-    font-weight:700;
-    cursor:pointer;
-    margin-top:4px;
+  .date { font-size:18px; font-weight:700; color:#302b47; }
+  .details { line-height:1.7; color:#77727f; }
+  .details strong { color:#302b47; font-size:18px; }
+  .km { color:#c7654b; font-weight:700; white-space:nowrap; }
+  .delete { border:0; background:transparent; color:#8e8994; font-size:25px; padding:0; }
+  .small-actions { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:15px; }
+  .small-actions button { font-size:14px; padding:12px 5px; }
+  @media(max-width:520px) {
+    .top { padding:38px 28px 24px; }
+    h1 { font-size:37px; }
+    .container { padding:20px 26px 45px; }
+    .card { padding:25px 32px; }
+    .stats { gap:10px; }
+    .stat .num { font-size:25px; }
+    .row2, .buttons { grid-template-columns:1fr; gap:12px; }
+    .history-item { grid-template-columns:70px 1fr auto; gap:8px; }
   }
 </style>
 </head>
-
 <body>
 
-<header>
-  <div class="eyebrow">DRIVING LOG</div>
-  <h1>
-    運転日誌
-    <span class="sub">Pixel 9a対応・運転記録</span>
-  </h1>
+<header class="top">
+  <div class="en">DRIVING LOG</div>
+  <h1>運転日誌</h1>
+  <div class="sub">Pixel 9a対応・運転記録</div>
 </header>
 
-<main>
+<main class="container">
+  <div class="notice">Pixel 9a / Chrome対応版・この端末のブラウザに自動保存</div>
 
-  <div style="font-size:11px;color:var(--muted);margin:-8px 0 14px;">
-    Pixel 9a / Chrome対応版・この端末のブラウザに自動保存
-  </div>
+  <section class="stats">
+    <div class="stat"><div class="num" id="count">0</div><div class="label">件</div></div>
+    <div class="stat"><div class="num" id="totalKm">0.0</div><div class="label">総走行 km</div></div>
+    <div class="stat"><div class="num" id="totalFuel">0.0</div><div class="label">総給油 L</div></div>
+  </section>
 
-  <div class="stats" id="stats"></div>
+  <section class="card">
+    <div class="title">新規記録</div>
 
-  <div class="card">
-
-    <h2>新規記録</h2>
-
-    <!-- ① 日付 -->
-    <label for="f-date">日付</label>
-    <input type="date" id="f-date">
-
-    <!-- ② 使用車 -->
-    <label for="f-car">使用車</label>
-    <input type="text" id="f-car" placeholder="社用車1">
-
-    <!-- ③ 運転者 -->
-    <label for="f-driver">運転者</label>
-    <input type="text" id="f-driver" placeholder="山田 太郎">
-
-    <!-- ④ 用務名 -->
-    <label for="f-purpose">用務名</label>
-    <input type="text" id="f-purpose" placeholder="道路パトロール">
-
-    <!-- ⑤ 行先 -->
-    <label for="f-dest">行先</label>
-    <input type="text" id="f-dest" placeholder="〇〇市〇〇町">
-
-    <!-- ⑥ 同乗者 -->
-    <label for="f-passenger">同乗者</label>
-    <input type="text" id="f-passenger" placeholder="山田 太郎、佐藤 花子">
-
-    <!-- ⑦・⑧ 出発・終了時間 -->
-    <label>出発・終了時間</label>
-
-    <div class="row">
-
-      <div>
-        <label for="f-start">出発時間</label>
-        <input type="text" id="f-start" placeholder="09:00">
-      </div>
-
-      <div>
-        <label for="f-end">終了時間</label>
-        <input type="text" id="f-end" placeholder="17:30">
-      </div>
-
+    <div class="field">
+      <label>日付</label>
+      <input id="date" type="date">
     </div>
 
-    <!-- ⑨ 走行距離 -->
-    <label for="f-distance">走行距離</label>
-    <input
-      type="number"
-      id="f-distance"
-      inputmode="decimal"
-      step="0.1"
-      placeholder="0.0 km"
-    >
-
-    <!-- ⑩ 給油 -->
-    <label for="f-fuel">給油</label>
-    <input
-      type="number"
-      id="f-fuel"
-      inputmode="decimal"
-      step="0.1"
-      placeholder="0.0 L"
-    >
-
-    <!-- ⑪ 飲酒検知 -->
-    <label for="f-alcohol">飲酒検知結果</label>
-    <input
-      type="text"
-      id="f-alcohol"
-      placeholder="0.00 mg/L"
-    >
-
-    <!-- ⑫ 体温 -->
-    <label for="f-temp">体温検知結果</label>
-    <input
-      type="text"
-      id="f-temp"
-      placeholder="36.5 ℃"
-    >
-
-    <button class="save-btn" id="save-btn">
-      記録する
-    </button>
-
-  </div>
-
-  <div class="card">
-
-    <h2>履歴</h2>
-
-    <div id="list"></div>
-
-    <div class="btn-row">
-      <button class="export-btn" id="export-btn">
-        CSVを保存
-      </button>
-
-      <button class="export-btn mail-btn" id="mail-btn">
-        メールで送信
-      </button>
+    <div class="field">
+      <label>使用車</label>
+      <input id="vehicle" placeholder="社用車1">
     </div>
 
-  </div>
+    <div class="field">
+      <label>運転者</label>
+      <input id="driver" placeholder="山田 太郎">
+    </div>
 
+    <div class="field">
+      <label>用務名</label>
+      <input id="purpose" placeholder="道路パトロール">
+    </div>
+
+    <div class="field">
+      <label>行先</label>
+      <input id="destination" placeholder="〇〇市〇〇町">
+    </div>
+
+    <div class="field">
+      <label>同乗者</label>
+      <input id="passenger" placeholder="山田 太郎、佐藤 花子">
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>出発時間</label>
+        <input id="start" type="time">
+      </div>
+      <div class="field">
+        <label>終了時間</label>
+        <input id="end" type="time">
+      </div>
+    </div>
+
+    <div class="row2">
+      <div class="field">
+        <label>走行距離（km）</label>
+        <input id="distance" type="number" step="0.1" placeholder="12345.0">
+      </div>
+      <div class="field">
+        <label>給油（L）</label>
+        <input id="fuel" type="number" step="0.1" placeholder="10.0">
+      </div>
+    </div>
+
+    <div class="field">
+      <label>飲酒検知結果</label>
+      <input id="alcohol" type="text" inputmode="decimal" placeholder="0.00 mg/L">
+    </div>
+
+    <div class="field">
+      <label>体温検知結果</label>
+      <input id="temperature" type="text" inputmode="decimal" placeholder="36.5 ℃">
+    </div>
+
+    <!-- 一時保存ボタン -->
+    <div class="buttons">
+      <button class="save" onclick="saveDraft()">一時保存する</button>
+      <button class="secondary" onclick="loadDraft()">一時保存を呼び出す</button>
+    </div>
+
+    <div class="buttons">
+      <button onclick="addRecord()">記録する</button>
+      <button class="danger" onclick="clearForm()">入力をクリア</button>
+    </div>
+
+    <div id="status" class="status"></div>
+  </section>
+
+  <section class="card">
+    <div class="title">履歴</div>
+    <div id="history"></div>
+    <div class="small-actions">
+      <button class="secondary" onclick="exportCSV()">CSVを保存</button>
+      <button onclick="emailCSV()">メールで送信</button>
+      <button class="danger" onclick="deleteAll()">履歴を全削除</button>
+    </div>
+  </section>
 </main>
 
-<div class="toast" id="toast"></div>
-
-<div class="overlay" id="mail-overlay">
-
-  <div class="sheet">
-
-    <h3>メールで送信</h3>
-
-    <p class="note">
-      「共有(添付)」ならメールアプリでCSVファイルを直接添付して送れます。
-    </p>
-
-    <button class="mail-option" id="opt-share">
-      <span class="dot dot-share"></span>
-      共有(添付) ー メールアプリを選ぶ
-    </button>
-
-    <button class="mail-option" id="opt-gmail">
-      <span class="dot dot-gmail"></span>
-      Gmailで作成(ブラウザ)
-    </button>
-
-    <button class="mail-option" id="opt-yahoo">
-      <span class="dot dot-yahoo"></span>
-      Yahoo!メールで作成(ブラウザ)
-    </button>
-
-    <button class="mail-option" id="opt-default">
-      <span class="dot dot-default"></span>
-      標準メールアプリで作成
-    </button>
-
-    <button class="sheet-cancel" id="mail-cancel">
-      キャンセル
-    </button>
-
-  </div>
-
-</div>
-
 <script>
+const DRAFT_KEY = "drivelog_draft_v1";
+const RECORD_KEY = "drivelog_records_v1";
 
-const STORE_KEY = 'drivelog:entries';
+const ids = [
+  "date","vehicle","driver","purpose","destination","passenger",
+  "start","end","distance","fuel","alcohol","temperature"
+];
 
-let entries = [];
-
-const $ = (id) => document.getElementById(id);
-
-
-/* 今日の日付 */
-function todayStr(){
-
+function today() {
   const d = new Date();
-
-  const p = n => String(n).padStart(2,'0');
-
-  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
-
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
 }
 
-
-/* 日付表示 */
-function fmtDate(iso){
-
-  const [y,m,d] = iso.split('-');
-
-  return `${m}/${d}`;
-
+function getFormData() {
+  const o = {};
+  ids.forEach(id => o[id] = document.getElementById(id).value);
+  return o;
 }
 
+function setFormData(o) {
+  ids.forEach(id => {
+    if (o && o[id] !== undefined) document.getElementById(id).value = o[id];
+  });
+}
 
-/* 保存データ読み込み */
-function loadEntries(){
+function message(text) {
+  const el = document.getElementById("status");
+  el.textContent = text;
+  el.style.display = "block";
+  setTimeout(() => el.style.display = "none", 3000);
+}
 
-  try{
+function saveDraft() {
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(getFormData()));
+  message("入力内容を一時保存しました。");
+}
 
-    const value = localStorage.getItem(STORE_KEY);
+function loadDraft() {
+  const raw = localStorage.getItem(DRAFT_KEY);
+  if (!raw) {
+    message("一時保存された入力内容はありません。");
+    return;
+  }
+  setFormData(JSON.parse(raw));
+  message("一時保存した入力内容を呼び出しました。");
+}
 
-    entries = value ? JSON.parse(value) : [];
+function clearForm() {
+  if (!confirm("現在の入力内容をクリアしますか？")) return;
+  setFormData({
+    date: today(), vehicle:"", driver:"", purpose:"",
+    destination:"", passenger:"", start:"", end:"",
+    distance:"", fuel:"", alcohol:"", temperature:""
+  });
+}
 
-    if(!Array.isArray(entries)){
-      entries = [];
-    }
+function getRecords() {
+  return JSON.parse(localStorage.getItem(RECORD_KEY) || "[]");
+}
 
-  }catch(e){
+function addRecord() {
+  const data = getFormData();
 
-    entries = [];
-
-    showToast('保存データを読み込めませんでした');
-
+  if (!data.date || !data.driver) {
+    alert("「日付」と「運転者」は入力してください。");
+    return;
   }
 
-  entries.sort((a,b) =>
-    b.date.localeCompare(a.date)
-  );
+  const records = getRecords();
+  records.push({
+    id: Date.now(),
+    ...data
+  });
+  localStorage.setItem(RECORD_KEY, JSON.stringify(records));
+
+  // 記録後も入力内容は残し、一時保存データだけ消す
+  localStorage.removeItem(DRAFT_KEY);
 
   render();
-
+  message("運転記録を保存しました。");
 }
 
-
-/* 保存 */
-function saveEntries(){
-
-  try{
-
-    localStorage.setItem(
-      STORE_KEY,
-      JSON.stringify(entries)
-    );
-
-    return true;
-
-  }catch(e){
-
-    showToast(
-      '保存できません。ブラウザの保存領域を確認してください'
-    );
-
-    return false;
-
-  }
-
+function deleteRecord(id) {
+  if (!confirm("この記録を削除しますか？")) return;
+  const records = getRecords().filter(r => r.id !== id);
+  localStorage.setItem(RECORD_KEY, JSON.stringify(records));
+  render();
 }
 
-
-/* メッセージ */
-function showToast(msg){
-
-  const t = $('toast');
-
-  t.textContent = msg;
-
-  t.classList.add('show');
-
-  setTimeout(
-    () => t.classList.remove('show'),
-    1800
-  );
-
+function deleteAll() {
+  if (!confirm("履歴をすべて削除しますか？")) return;
+  localStorage.removeItem(RECORD_KEY);
+  render();
 }
 
+function render() {
+  const records = getRecords();
+  document.getElementById("count").textContent = records.length;
 
-/* 画面表示 */
-function render(){
+  const km = records.reduce((s,r) => s + (parseFloat(r.distance)||0), 0);
+  const fuel = records.reduce((s,r) => s + (parseFloat(r.fuel)||0), 0);
+  document.getElementById("totalKm").textContent = km.toFixed(1);
+  document.getElementById("totalFuel").textContent = fuel.toFixed(1);
 
-  const totalKm =
-    entries.reduce(
-      (s,e) => s + (Number(e.distance) || 0),
-      0
-    );
-
-  const totalFuel =
-    entries.reduce(
-      (s,e) => s + (Number(e.fuel) || 0),
-      0
-    );
-
-  $('stats').innerHTML = `
-
-    <div class="stat">
-      <span class="num">${entries.length}</span>
-      <span class="lbl">件</span>
-    </div>
-
-    <div class="stat">
-      <span class="num">${totalKm.toFixed(1)}</span>
-      <span class="lbl">総走行 km</span>
-    </div>
-
-    <div class="stat">
-      <span class="num">${totalFuel.toFixed(1)}</span>
-      <span class="lbl">総給油 L</span>
-    </div>
-
-  `;
-
-
-  const list = $('list');
-
-
-  if(entries.length === 0){
-
-    list.innerHTML =
-      `<div class="empty">まだ記録がありません</div>`;
-
+  const box = document.getElementById("history");
+  if (!records.length) {
+    box.innerHTML = '<div style="color:#999;padding:10px 0;">まだ記録はありません。</div>';
     return;
-
   }
 
-
-  list.innerHTML = entries.map(e => {
-
-    const timeParts = [];
-
-    if(e.start){
-      timeParts.push(
-        `出発 ${escapeHtml(e.start)}`
-      );
-    }
-
-    if(e.end){
-      timeParts.push(
-        `終了 ${escapeHtml(e.end)}`
-      );
-    }
-
-
-    const checkParts = [];
-
-    if(e.alcohol){
-      checkParts.push(
-        `飲酒 ${escapeHtml(e.alcohol)}`
-      );
-    }
-
-    if(e.temp){
-      checkParts.push(
-        `体温 ${escapeHtml(e.temp)}`
-      );
-    }
-
-
+  box.innerHTML = records.slice().reverse().map(r => {
+    const date = r.date ? r.date.slice(5).replace("-", "/") : "";
     return `
-
-      <div class="entry">
-
-        <div class="date">
-          ${fmtDate(e.date)}
+      <div class="history-item">
+        <div class="date">${date}</div>
+        <div class="details">
+          <strong>${esc(r.destination || "行先未入力")}</strong><br>
+          ${esc(r.vehicle)} ・ ${esc(r.driver)}<br>
+          用務：${esc(r.purpose)}<br>
+          同乗者：${esc(r.passenger || "なし")}<br>
+          出発 ${esc(r.start || "")} ～ 終了 ${esc(r.end || "")}<br>
+          飲酒 ${esc(r.alcohol || "")} ・ 体温 ${esc(r.temperature || "")}
         </div>
-
-        <div class="info">
-
-          <div class="dest">
-            ${escapeHtml(e.dest || '(行先未入力)')}
-          </div>
-
-          <div class="meta">
-            ${escapeHtml(e.car || '')}
-            ${e.driver ? ' ・ ' + escapeHtml(e.driver) : ''}
-          </div>
-
-          ${
-            e.purpose
-            ? `<div class="meta">
-                用務：${escapeHtml(e.purpose)}
-               </div>`
-            : ''
-          }
-
-          ${
-            e.passenger
-            ? `<div class="meta">
-                同乗者：${escapeHtml(e.passenger)}
-               </div>`
-            : ''
-          }
-
-          ${
-            timeParts.length
-            ? `<div class="meta">
-                ${timeParts.join(' 〜 ')}
-               </div>`
-            : ''
-          }
-
-          ${
-            checkParts.length
-            ? `<div class="meta">
-                ${checkParts.join(' ・ ')}
-               </div>`
-            : ''
-          }
-
+        <div>
+          <div class="km">${esc(r.distance || "0")}km</div>
+          <button class="delete" onclick="deleteRecord(${r.id})">×</button>
         </div>
-
-        <div class="km">
-          ${(Number(e.distance) || 0).toFixed(1)}km
-        </div>
-
-        <button
-          class="del"
-          data-id="${e.id}"
-          aria-label="削除"
-        >
-          ✕
-        </button>
-
-      </div>
-
-    `;
-
-  }).join('');
-
-
-  list.querySelectorAll('.del').forEach(btn => {
-
-    btn.addEventListener('click', () => {
-
-      entries = entries.filter(
-        e => e.id !== btn.dataset.id
-      );
-
-      saveEntries();
-
-      render();
-
-      showToast('削除しました');
-
-    });
-
-  });
-
+      </div>`;
+  }).join("");
 }
 
-
-/* HTMLエスケープ */
-function escapeHtml(str){
-
-  return String(str).replace(
-    /[&<>"']/g,
-    c => ({
-      '&':'&amp;',
-      '<':'&lt;',
-      '>':'&gt;',
-      '"':'&quot;',
-      "'":'&#39;'
-    }[c])
-  );
-
+function esc(v) {
+  return String(v ?? "").replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
 }
 
-
-/* 初期日付 */
-$('f-date').value = todayStr();
-
-
-/* 記録ボタン */
-$('save-btn').addEventListener(
-  'click',
-  () => {
-
-    const date =
-      $('f-date').value || todayStr();
-
-    const car =
-      $('f-car').value.trim();
-
-    const driver =
-      $('f-driver').value.trim();
-
-    const purpose =
-      $('f-purpose').value.trim();
-
-    const dest =
-      $('f-dest').value.trim();
-
-    /* ★ 同乗者 */
-    const passenger =
-      $('f-passenger').value.trim();
-
-    const start =
-      $('f-start').value.trim();
-
-    const end =
-      $('f-end').value.trim();
-
-    const distance =
-      parseFloat($('f-distance').value) || 0;
-
-    const fuel =
-      parseFloat($('f-fuel').value) || 0;
-
-    const alcohol =
-      $('f-alcohol').value.trim();
-
-    const temp =
-      $('f-temp').value.trim();
-
-
-    const entry = {
-
-      id: Date.now().toString(),
-
-      date: date,
-
-      car: car,
-
-      driver: driver,
-
-      purpose: purpose,
-
-      dest: dest,
-
-      passenger: passenger,
-
-      start: start,
-
-      end: end,
-
-      distance: distance,
-
-      fuel: fuel,
-
-      alcohol: alcohol,
-
-      temp: temp
-
-    };
-
-
-    entries.unshift(entry);
-
-    entries.sort(
-      (a,b) =>
-        b.date.localeCompare(a.date)
-    );
-
-
-    saveEntries();
-
-    render();
-
-    showToast('記録しました');
-
-
-    /* 入力欄クリア */
-
-    $('f-driver').value = '';
-
-    $('f-car').value = '';
-
-    $('f-purpose').value = '';
-
-    $('f-dest').value = '';
-
-    $('f-passenger').value = '';
-
-    $('f-distance').value = '';
-
-    $('f-fuel').value = '';
-
-    $('f-start').value = '';
-
-    $('f-end').value = '';
-
-    $('f-alcohol').value = '';
-
-    $('f-temp').value = '';
-
-    $('f-date').value = todayStr();
-
-  }
-);
-
-
-/* CSV作成 */
-function buildCsv(){
-
-  let csv =
-    '\uFEFF日付,使用車,運転者,用務名,行先,同乗者,出発時間,終了時間,走行距離,給油,飲酒検知結果,体温検知結果\n';
-
-
-  entries.forEach(e => {
-
-    const row = [
-
-      e.date,
-
-      e.car || '',
-
-      e.driver || '',
-
-      e.purpose || '',
-
-      e.dest || '',
-
-      e.passenger || '',
-
-      e.start || '',
-
-      e.end || '',
-
-      Number(e.distance || 0).toFixed(1),
-
-      Number(e.fuel || 0).toFixed(1),
-
-      e.alcohol || '',
-
-      e.temp || ''
-
-    ]
-
-    .map(
-      v =>
-        `"${String(v).replace(/"/g,'""')}"`
-    )
-
-    .join(',');
-
-
-    csv += row + '\n';
-
-  });
-
-
-  return csv;
-
+function csvEscape(v) {
+  return '"' + String(v ?? "").replace(/"/g, '""') + '"';
 }
 
-
-/* CSV保存 */
-$('export-btn').addEventListener(
-  'click',
-  () => {
-
-    if(entries.length === 0){
-
-      showToast(
-        '書き出すデータがありません'
-      );
-
-      return;
-
-    }
-
-
-    const csv = buildCsv();
-
-    const blob =
-      new Blob(
-        [csv],
-        {type:'text/csv'}
-      );
-
-    const url =
-      URL.createObjectURL(blob);
-
-    const a =
-      document.createElement('a');
-
-    a.href = url;
-
-    a.download =
-      `drivelog_${todayStr()}.csv`;
-
-    document.body.appendChild(a);
-
-    a.click();
-
-    document.body.removeChild(a);
-
-    URL.revokeObjectURL(url);
-
+function exportCSV() {
+  const records = getRecords();
+  if (!records.length) {
+    alert("CSVにする記録がありません。");
+    return;
   }
-);
 
+  const header = [
+    "日付","使用車","運転者","用務名","行先","同乗者",
+    "出発時間","終了時間","走行距離","給油",
+    "飲酒検知結果","体温検知結果"
+  ];
 
-/* メールボタン */
-$('mail-btn').addEventListener(
-  'click',
-  () => {
+  const lines = [
+    header.map(csvEscape).join(","),
+    ...records.map(r => [
+      r.date,r.vehicle,r.driver,r.purpose,r.destination,r.passenger,
+      r.start,r.end,r.distance,r.fuel,r.alcohol,r.temperature
+    ].map(csvEscape).join(","))
+  ];
 
-    if(entries.length === 0){
-
-      showToast(
-        '送信するデータがありません'
-      );
-
-      return;
-
-    }
-
-    $('mail-overlay')
-      .classList.add('show');
-
-  }
-);
-
-
-/* メールキャンセル */
-$('mail-cancel').addEventListener(
-  'click',
-  () => {
-
-    $('mail-overlay')
-      .classList.remove('show');
-
-  }
-);
-
-
-/* 背景クリック */
-$('mail-overlay').addEventListener(
-  'click',
-  e => {
-
-    if(e.target.id === 'mail-overlay'){
-
-      $('mail-overlay')
-        .classList.remove('show');
-
-    }
-
-  }
-);
-
-
-/* 共有 */
-$('opt-share').addEventListener(
-  'click',
-  async () => {
-
-    $('mail-overlay')
-      .classList.remove('show');
-
-    const csv = buildCsv();
-
-    const filename =
-      `drivelog_${todayStr()}.csv`;
-
-    try{
-
-      const file =
-        new File(
-          [csv],
-          filename,
-          {type:'text/csv'}
-        );
-
-
-      if(
-        navigator.canShare &&
-        navigator.canShare({
-          files:[file]
-        })
-      ){
-
-        await navigator.share({
-
-          files:[file],
-
-          title:'運転日誌',
-
-          text:'運転日誌のCSVを送付します。'
-
-        });
-
-        return;
-
-      }
-
-
-      showToast(
-        'この端末では添付共有が使えません'
-      );
-
-    }catch(e){
-
-      if(
-        e &&
-        e.name === 'AbortError'
-      ){
-        return;
-      }
-
-      showToast('共有に失敗しました');
-
-    }
-
-  }
-);
-
-
-/* CSVファイルダウンロード */
-function downloadCsvFile(){
-
-  const csv = buildCsv();
-
-  const filename =
-    `drivelog_${todayStr()}.csv`;
-
-  const blob =
-    new Blob(
-      [csv],
-      {type:'text/csv'}
-    );
-
-  const url =
-    URL.createObjectURL(blob);
-
-  const a =
-    document.createElement('a');
-
+  const blob = new Blob(["\uFEFF" + lines.join("\r\n")], {type:"text/csv;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
   a.href = url;
-
-  a.download = filename;
-
-  document.body.appendChild(a);
-
+  a.download = "運転日誌_" + today() + ".csv";
   a.click();
-
-  document.body.removeChild(a);
-
   URL.revokeObjectURL(url);
-
-  return filename;
-
 }
 
-
-/* Gmail */
-$('opt-gmail').addEventListener(
-  'click',
-  () => {
-
-    $('mail-overlay')
-      .classList.remove('show');
-
-    const filename =
-      downloadCsvFile();
-
-    const subject =
-      encodeURIComponent(
-        '運転日誌 CSV'
-      );
-
-    const body =
-      encodeURIComponent(
-        `運転日誌のCSVを添付してください。\n` +
-        `(ダウンロードされた「${filename}」を「ファイルを添付」から選択)`
-      );
-
-
-    window.open(
-      `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`,
-      '_blank'
-    );
-
+function emailCSV() {
+  const records = getRecords();
+  if (!records.length) {
+    alert("送信する記録がありません。");
+    return;
   }
-);
+  const subject = encodeURIComponent("運転日誌 " + today());
+  const body = encodeURIComponent(
+    "運転日誌のCSVデータを添付して送信してください。\n\n" +
+    "※このボタンはメールアプリを起動します。CSVファイルの添付は端末側で行ってください。"
+  );
+  location.href = `mailto:?subject=${subject}&body=${body}`;
+}
 
-
-/* Yahoo!メール */
-$('opt-yahoo').addEventListener(
-  'click',
-  () => {
-
-    $('mail-overlay')
-      .classList.remove('show');
-
-    const filename =
-      downloadCsvFile();
-
-    const subject =
-      encodeURIComponent(
-        '運転日誌 CSV'
-      );
-
-    const body =
-      encodeURIComponent(
-        `運転日誌のCSVを添付してください。\n` +
-        `(ダウンロードされた「${filename}」を「ファイルを添付」から選択)`
-      );
-
-
-    window.open(
-      `https://compose.mail.yahoo.co.jp/?subject=${subject}&body=${body}`,
-      '_blank'
-    );
-
-  }
-);
-
-
-/* 標準メール */
-$('opt-default').addEventListener(
-  'click',
-  () => {
-
-    $('mail-overlay')
-      .classList.remove('show');
-
-    const filename =
-      downloadCsvFile();
-
-    const subject =
-      encodeURIComponent(
-        '運転日誌 CSV'
-      );
-
-    const body =
-      encodeURIComponent(
-        `運転日誌のCSVを添付してください。\n` +
-        `(ダウンロードされた「${filename}」を添付から選択)`
-      );
-
-
-    window.location.href =
-      `mailto:?subject=${subject}&body=${body}`;
-
-  }
-);
-
-
-/* 起動 */
-loadEntries();
-
+document.getElementById("date").value = today();
+render();
 </script>
-
 </body>
-</html> 
+</html>
